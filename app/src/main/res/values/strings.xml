@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Tumblr Fetchr</string>
+    <string name="search_hint">Search photos on Tumblr</string>
+    <string name="search_tab">Search</string>
+    <string name="favourite_tab">Favorites</string>
+
+</resources>

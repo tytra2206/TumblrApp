@@ -49,11 +49,6 @@ public class FavoriteItemLab {
            item4.setBlogName("comedycentral");
            item4.setAvatar(item4.getBlogName());
            mItems.add(item4);
-
-           FavoriteItem item5 = new FavoriteItem();
-           item5.setBlogName("moviesexvideotape");
-           item5.setAvatar(item5.getBlogName());
-           mItems.add(item5);
        }
     }
 

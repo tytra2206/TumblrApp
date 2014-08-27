@@ -3,7 +3,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ffdedede">
+    android:background="#ffdedede"
+    android:id="@+id/favorite_container">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -55,6 +56,12 @@
 
     </FrameLayout>
 
-
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/zoom_photo_imageview"
+        android:visibility="invisible"
+        android:scaleType="centerInside"
+        android:layout_gravity="center"/>
 
 </LinearLayout>

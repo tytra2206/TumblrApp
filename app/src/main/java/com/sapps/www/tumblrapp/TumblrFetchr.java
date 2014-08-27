@@ -148,4 +148,14 @@ public class TumblrFetchr {
         }
         return null;
     }
+
+    public static boolean isBlogValid(String blogName) {
+        String url =  "http://api.tumblr.com/v2/blog/" + blogName +
+                ".tumblr.com/posts/photo?api_key=9BrmFSYl1n5zj72Sb7hW5Rj0GASGNgxqwsdYpglt2fkkiEigxT";
+        String resultJSON = fetchUrl(url);
+        if(resultJSON != null) {
+           return  true;
+        }
+        return false;
+    }
 }

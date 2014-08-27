@@ -35,7 +35,7 @@ public class FavoriteFragment extends Fragment {
     private Gallery mGallery;
     private GridView mGridView;
     private GridViewAdapter mAdapter;
-    private ArrayList<GalleryItem> mItems;
+    public static ArrayList<GalleryItem> mItems;
     private int mOffset;
     private static final String TAG = "FavoriteFragment";
     private String mBlogUrl;
@@ -45,20 +45,24 @@ public class FavoriteFragment extends Fragment {
     private TextView mLoadingTexView;
     private BackgroundFetchr mBackgroundFetchr;
 
+    public static final int FAVORITE_PHOTO_ID = 1;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-        mBlogUrl = "";
         mOffset = 0;
         mFavoriteItems = FavoriteItemLab.get(getActivity()).getFavoriteItems();
         mFavoriteAdapter = new FavoriteImageAdapter();
         mBackgroundFetchr = new BackgroundFetchr();
+        mBlogUrl = mFavoriteItems.get(0).getBlogName();
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.favorite_fragment, container, false);
+
+        mBackgroundFetchr.execute(mBlogUrl, mOffset + "");
 
         mGallery = (Gallery) v.findViewById(R.id.favorite_gallery);
         registerForContextMenu(mGallery);
@@ -104,11 +108,9 @@ public class FavoriteFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l) {
                 if (mItems != null && mItems.get(pos) != null) {
-                    Intent intent = new Intent(getActivity(), PhotoViewActivity.class);
-                    GalleryItem item = mItems.get(pos);
-                    intent.putExtra(PhotoViewActivity.BLOG_URL, item.getPostUrl());
-                    intent.putExtra(PhotoViewActivity.PHOTO_URL, item.getLargeUrl());
-                    intent.putExtra(PhotoViewActivity.BLOG_NAME, item.getBlogName());
+                    Intent intent = new Intent(getActivity(), FavoritePhotoViewActivity.class);
+                    intent.putExtra(FavoritePhotoViewActivity.GALLERY_ITEM_POS, pos);
+                    intent.putExtra(FavoritePhotoViewActivity.CALLER_ID, FAVORITE_PHOTO_ID);
                     startActivity(intent);
                 }
             }
@@ -155,8 +157,10 @@ public class FavoriteFragment extends Fragment {
 
         @Override
         protected void onPreExecute() {
-            mGallery.setVisibility(View.INVISIBLE);
-            mLoadingTexView.setVisibility(View.VISIBLE);
+            if(mGallery != null && mLoadingTexView != null) {
+                mGallery.setVisibility(View.INVISIBLE);
+                mLoadingTexView.setVisibility(View.VISIBLE);
+            }
         }
 
         @Override
@@ -181,9 +185,12 @@ public class FavoriteFragment extends Fragment {
                 }
                 updateAdapter();
                 mProgressBar.setVisibility(View.GONE);
+            }else  {
+                Toast.makeText(getActivity(), "This blog contains no photos", Toast.LENGTH_SHORT).show();
             }
             mGallery.setVisibility(View.VISIBLE);
             mLoadingTexView.setVisibility(View.INVISIBLE);
+            mProgressBar.setVisibility(View.GONE);
             mBackgroundFetchr = new BackgroundFetchr();
         }
     }
@@ -228,6 +235,14 @@ public class FavoriteFragment extends Fragment {
     }
 
     @Override
+    public void setMenuVisibility(boolean menuVisible) {
+        super.setMenuVisibility(menuVisible);
+        if(menuVisible && mFavoriteAdapter != null) {
+            mFavoriteAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         getActivity().getMenuInflater().inflate(R.menu.favorite_context, menu);
     }
@@ -248,4 +263,5 @@ public class FavoriteFragment extends Fragment {
         }
         return super.onContextItemSelected(item);
     }
+
 }

@@ -23,8 +23,8 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".PhotoViewActivity"
-        android:theme="@android:style/Theme.Translucent"
+        <activity android:name=".FavoritePhotoViewActivity"
+        android:theme="@style/Theme.Lightbox"
         android:configChanges="orientation|keyboardHidden|screenSize"/>
 
         <activity android:name=".PhotoPageActivity"

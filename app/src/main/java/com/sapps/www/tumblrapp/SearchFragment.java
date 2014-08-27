@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.Toast;
@@ -29,14 +31,17 @@ public class SearchFragment extends Fragment {
 
     private static final String TAG ="SearchFragment";
     private static final String TIMESTAMP = "com.sapps.www.tumblrapp.timestamp";
+    private static final String FAVORITE_DIALOG = "com.sapps.www.tumblrapp.dialog";
 
-    private ArrayList<GalleryItem> mItems;
+    public static ArrayList<GalleryItem> mItems;
     public GridView mGridView;
     private GridViewAdapter mAdapter;
     private ProgressBar mProgressBar;
     public static int mBefore;
+    private ImageButton mAddButton;
     private String mQuery;
     private BackgroundFetchr mBackgroundFetchr;
+    public static final int SEARCH_PHOTO_ID = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,7 +55,7 @@ public class SearchFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.search_fragment, container, false);
 
         mGridView = (GridView) v.findViewById(R.id.search_gridView);
@@ -58,11 +63,9 @@ public class SearchFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l) {
                 if(mItems != null && mItems.get(pos) != null) {
-                    Intent intent = new Intent(getActivity(), PhotoViewActivity.class);
-                    GalleryItem item = mItems.get(pos);
-                    intent.putExtra(PhotoViewActivity.BLOG_URL, item.getPostUrl());
-                    intent.putExtra(PhotoViewActivity.PHOTO_URL, item.getLargeUrl());
-                    intent.putExtra(PhotoViewActivity.BLOG_NAME, item.getBlogName());
+                    Intent intent = new Intent(getActivity(), FavoritePhotoViewActivity.class);
+                    intent.putExtra(FavoritePhotoViewActivity.GALLERY_ITEM_POS, pos);
+                    intent.putExtra(FavoritePhotoViewActivity.CALLER_ID, SEARCH_PHOTO_ID);
                     startActivity(intent);
                 }
             }
@@ -129,6 +132,16 @@ public class SearchFragment extends Fragment {
 
         mProgressBar = (ProgressBar) v.findViewById(R.id.search_progressbar);
         mProgressBar.setVisibility(View.INVISIBLE);
+
+        mAddButton = (ImageButton) v.findViewById(R.id.add_favorite_button);
+        mAddButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                AddFavoriteDialogFragment fragment = new AddFavoriteDialogFragment();
+                fragment.show(fm, FAVORITE_DIALOG);
+            }
+        });
         Log.i(TAG, "onCreateView() called");
         return v;
     }
@@ -194,6 +207,7 @@ public class SearchFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+        FavoriteItemLab.get(getActivity()).saveFavoriteItems();
         Log.i(TAG, "onPause() called");
     }
 

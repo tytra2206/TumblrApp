@@ -3,8 +3,6 @@ package com.sapps.www.tumblrapp;
 import android.content.Context;
 import android.util.Log;
 
-import org.json.JSONException;
-
 import java.util.ArrayList;
 
 /**
@@ -39,11 +37,6 @@ public class FavoriteItemLab {
            item2.setBlogName("ipostfun");
            item2.setAvatar(item2.getBlogName());
            mItems.add(item2);
-
-           FavoriteItem item3 = new FavoriteItem();
-           item3.setBlogName("instacelebs");
-           item3.setAvatar(item3.getBlogName());
-           mItems.add(item3);
 
            FavoriteItem item4 = new FavoriteItem();
            item4.setBlogName("comedycentral");

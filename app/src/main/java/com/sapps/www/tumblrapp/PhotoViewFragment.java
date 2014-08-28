@@ -13,6 +13,9 @@ import android.widget.ProgressBar;
 
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
+
+import java.util.ArrayList;
+
 /**
  * Created by Hoang on 8/7/2014.
  */
@@ -25,19 +28,21 @@ public class PhotoViewFragment extends Fragment {
     private String postUrl;
     private int mPosition;
     private int mCallerId;
+    private ArrayList<GalleryItem> mItems;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mPosition = getArguments().getInt(GALLERY_ITEM);
         mCallerId = getArguments().getInt(CALLER_ID);
-        GalleryItem item = null;
+
         if(mCallerId == FavoriteFragment.FAVORITE_PHOTO_ID) {
-            item = FavoriteFragment.mItems.get(mPosition);
+            mItems = FavoriteGalleryItemLab.get(getActivity()).getFavoriteGalleryItems();
         }else {
-            item = SearchFragment.mItems.get(mPosition);
+            mItems = SearchGalleryItemLab.get(getActivity()).getSearchGalleryItems();
         }
 
+        GalleryItem item = mItems.get(mPosition);
         blogName = item.getBlogName();
         photoUrl = item.getLargeUrl();
         postUrl = item.getPostUrl();

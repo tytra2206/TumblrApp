@@ -23,7 +23,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".FavoritePhotoViewActivity"
+        <activity android:name=".PhotoViewPagerActivity"
         android:theme="@style/Theme.Lightbox"
         android:configChanges="orientation|keyboardHidden|screenSize"/>
 

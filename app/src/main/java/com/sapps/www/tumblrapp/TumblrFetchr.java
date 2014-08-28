@@ -78,7 +78,7 @@ public class TumblrFetchr {
                     for(int k = 0; k < alt_sizes.length(); k++) {
                         JSONObject url = alt_sizes.getJSONObject(k);
                         String urlString = url.getString("url");
-                        if(k == 2) {
+                        if(k == 0) {
                             item.setLargeUrl(urlString);
                         } else if(k == 4) {
                             item.setSmallUrl(urlString);
@@ -130,7 +130,7 @@ public class TumblrFetchr {
                         JSONObject url = alt_sizes.getJSONObject(k);
                         String urlString = url.getString("url");
 
-                        if(k == 2) {
+                        if(k == 0) {
                             item.setLargeUrl(urlString);
                         } else if(k == 4) {
                             item.setSmallUrl(urlString);

@@ -33,15 +33,16 @@ public class SearchFragment extends Fragment {
     private static final String TIMESTAMP = "com.sapps.www.tumblrapp.timestamp";
     private static final String FAVORITE_DIALOG = "com.sapps.www.tumblrapp.dialog";
 
-    public static ArrayList<GalleryItem> mItems;
+    private ArrayList<GalleryItem> mItems;
     public GridView mGridView;
     private GridViewAdapter mAdapter;
     private ProgressBar mProgressBar;
     public static int mBefore;
     private ImageButton mAddButton;
-    private String mQuery;
+    public static String mQuery;
     private BackgroundFetchr mBackgroundFetchr;
     public static final int SEARCH_PHOTO_ID = 0;
+    private boolean shouldKeepFetching;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,6 +52,8 @@ public class SearchFragment extends Fragment {
                 .commit();
         mBefore = 0;
         mBackgroundFetchr = new BackgroundFetchr();
+        shouldKeepFetching = true;
+        mItems = SearchGalleryItemLab.get(getActivity()).getSearchGalleryItems();
         Log.i(TAG, "onCreate() called");
     }
 
@@ -63,9 +66,13 @@ public class SearchFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l) {
                 if(mItems != null && mItems.get(pos) != null) {
-                    Intent intent = new Intent(getActivity(), FavoritePhotoViewActivity.class);
-                    intent.putExtra(FavoritePhotoViewActivity.GALLERY_ITEM_POS, pos);
-                    intent.putExtra(FavoritePhotoViewActivity.CALLER_ID, SEARCH_PHOTO_ID);
+                    if(mBackgroundFetchr.getStatus() == AsyncTask.Status.RUNNING) {
+                        mBackgroundFetchr.cancel(true);
+                        mBackgroundFetchr = new BackgroundFetchr();
+                    }
+                    Intent intent = new Intent(getActivity(), PhotoViewPagerActivity.class);
+                    intent.putExtra(PhotoViewPagerActivity.GALLERY_ITEM_POS, pos);
+                    intent.putExtra(PhotoViewPagerActivity.CALLER_ID, SEARCH_PHOTO_ID);
                     startActivity(intent);
                 }
             }
@@ -80,7 +87,8 @@ public class SearchFragment extends Fragment {
             @Override
             public void onScroll(AbsListView absListView, int i, int i2, int i3) {
                 if(i + i2 >= i3 && mBefore != 0 && isNetworkAvailable()
-                        && mBackgroundFetchr.getStatus() != AsyncTask.Status.RUNNING) {
+                        && mBackgroundFetchr.getStatus() != AsyncTask.Status.RUNNING
+                        && shouldKeepFetching) {
                     SharedPreferences prefs = PreferenceManager
                             .getDefaultSharedPreferences(getActivity());
                     String lastTimeStamp = prefs.getString(TIMESTAMP, null);
@@ -106,21 +114,24 @@ public class SearchFragment extends Fragment {
 
                 Log.i(TAG, "onQueryTextSubmit called");
 
-                if(isNetworkAvailable()) {
+                if(isNetworkAvailable() && mBackgroundFetchr.getStatus() != AsyncTask.Status.RUNNING) {
                     mProgressBar.setVisibility(View.VISIBLE);
-                    mItems = null;
+                    SearchGalleryItemLab.get(getActivity()).clearSearchGalleryItems();
                     mAdapter = null;
                     mBefore = 0;
                     mQuery = query.replace(" ", "%20");
-                    new BackgroundFetchr().execute(mQuery);
-                    searchView.clearFocus();
+                    mBackgroundFetchr.execute(mQuery);
+                    searchView.setQuery("", false);
+                    searchView.setIconified(true);
+
                     return true;
                 } else {
                     Toast.makeText(getActivity(), "Network not available", Toast.LENGTH_SHORT).show();
-                    searchView.clearFocus();
+                    searchView.setQuery("", false);
+                    searchView.setIconified(true);
+
                     return false;
                 }
-
             }
 
             @Override
@@ -149,9 +160,15 @@ public class SearchFragment extends Fragment {
     private class BackgroundFetchr extends AsyncTask<String, Void, ArrayList<GalleryItem>> {
 
         @Override
+        protected void onPreExecute() {
+            mProgressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
         protected ArrayList<GalleryItem> doInBackground(String... strings) {
             String url = "http://api.tumblr.com/v2/tagged?tag=" + strings[0] +
                         "&api_key=9BrmFSYl1n5zj72Sb7hW5Rj0GASGNgxqwsdYpglt2fkkiEigxT&before=" + mBefore;
+
 
             return TumblrFetchr.parseTaggedItems(TumblrFetchr.fetchUrl(url));
 
@@ -160,19 +177,22 @@ public class SearchFragment extends Fragment {
         @Override
         protected void onPostExecute(ArrayList<GalleryItem> galleryItems) {
             if(galleryItems != null && !galleryItems.isEmpty()) {
-                if(mItems == null) {
-                    mItems = galleryItems;
-                }else {
-                    mItems.addAll(galleryItems);
-                }
+                SearchGalleryItemLab.get(getActivity()).addSearchGalleryItems(galleryItems);
+                shouldKeepFetching = true;
                 updateAdapter();
             }
 
-            if(galleryItems == null || galleryItems.isEmpty()) {
-                if(mItems == null) {
+            else if(galleryItems == null || galleryItems.isEmpty()) {
+                if(mItems.isEmpty()) {
                     Toast.makeText(getActivity(), "Search Result: 0", Toast.LENGTH_SHORT).show();
                     updateAdapter();
+                    shouldKeepFetching = false;
                 }
+            }else if (galleryItems.size() < 10) {
+                mProgressBar.setVisibility(View.GONE);
+                mBackgroundFetchr = new BackgroundFetchr();
+                mBackgroundFetchr.execute(mQuery);
+                updateAdapter();
             }
             mProgressBar.setVisibility(View.GONE);
             mBackgroundFetchr = new BackgroundFetchr();
@@ -182,7 +202,7 @@ public class SearchFragment extends Fragment {
     private void updateAdapter() {
         if (getActivity() == null || mGridView == null) return;
 
-        if (mItems != null) {
+        if (!mItems.isEmpty()) {
             if(mAdapter == null) {
                 mAdapter = new GridViewAdapter(mItems, getActivity());
                 mGridView.setAdapter(mAdapter);
@@ -214,6 +234,13 @@ public class SearchFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        updateAdapter();
         Log.i(TAG, "onResume() called");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        SearchGalleryItemLab.get(getActivity()).clearSearchGalleryItems();
     }
 }

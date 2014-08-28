@@ -2,14 +2,11 @@ package com.sapps.www.tumblrapp;
 
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.view.Window;
 
 public class MainActivity extends FragmentActivity implements ActionBar.TabListener{
 
@@ -26,9 +23,10 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
             public Fragment getItem(int i) {
                 switch (i) {
                     case 0:
-                        return new SearchFragment();
-                    case 1:
                         return new FavoriteFragment();
+
+                    case 1:
+                        return new SearchFragment();
                     default:
                         return null;
                 }
@@ -67,8 +65,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
-        actionBar.addTab(actionBar.newTab().setText(R.string.search_tab).setTabListener(this));
         actionBar.addTab(actionBar.newTab().setText(R.string.favourite_tab).setTabListener(this));
+        actionBar.addTab(actionBar.newTab().setText(R.string.search_tab).setTabListener(this));
 
         mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override

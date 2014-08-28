@@ -35,8 +35,8 @@ public class FavoriteFragment extends Fragment {
     private Gallery mGallery;
     private GridView mGridView;
     private GridViewAdapter mAdapter;
-    public static ArrayList<GalleryItem> mItems;
-    private int mOffset;
+    private ArrayList<GalleryItem> mItems;
+    public static int mOffset;
     private static final String TAG = "FavoriteFragment";
     private String mBlogUrl;
     private ProgressBar mProgressBar;
@@ -44,6 +44,7 @@ public class FavoriteFragment extends Fragment {
     private FavoriteImageAdapter mFavoriteAdapter;
     private TextView mLoadingTexView;
     private BackgroundFetchr mBackgroundFetchr;
+    private boolean shouldKeepFetching;
 
     public static final int FAVORITE_PHOTO_ID = 1;
 
@@ -53,9 +54,11 @@ public class FavoriteFragment extends Fragment {
         setRetainInstance(true);
         mOffset = 0;
         mFavoriteItems = FavoriteItemLab.get(getActivity()).getFavoriteItems();
+        mItems = FavoriteGalleryItemLab.get(getActivity()).getFavoriteGalleryItems();
         mFavoriteAdapter = new FavoriteImageAdapter();
         mBackgroundFetchr = new BackgroundFetchr();
         mBlogUrl = mFavoriteItems.get(0).getBlogName();
+        shouldKeepFetching = true;
     }
 
     @Override
@@ -79,7 +82,7 @@ public class FavoriteFragment extends Fragment {
                     mProgressBar.setVisibility(View.VISIBLE);
                     mOffset = 0;
                     mBlogUrl = mFavoriteItems.get(pos).getBlogName();
-                    mItems = null;
+                    FavoriteGalleryItemLab.get(getActivity()).clearFavoriteGalleryItems();
                     mAdapter = null;
                     mBackgroundFetchr.execute(mBlogUrl, mOffset + "");
                 }
@@ -96,7 +99,8 @@ public class FavoriteFragment extends Fragment {
             @Override
             public void onScroll(AbsListView absListView, int i, int i2, int i3) {
                 if(i + i2 >= i3 && !mBlogUrl.isEmpty() && isNetworkAvailable()
-                        && mBackgroundFetchr.getStatus() != AsyncTask.Status.RUNNING) {
+                        && mBackgroundFetchr.getStatus() != AsyncTask.Status.RUNNING
+                        && shouldKeepFetching) {
                     Log.i(TAG, "onScroll called");
                     mOffset += 20;
                     mBackgroundFetchr.execute(mBlogUrl, mOffset + "");
@@ -108,9 +112,13 @@ public class FavoriteFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int pos, long l) {
                 if (mItems != null && mItems.get(pos) != null) {
-                    Intent intent = new Intent(getActivity(), FavoritePhotoViewActivity.class);
-                    intent.putExtra(FavoritePhotoViewActivity.GALLERY_ITEM_POS, pos);
-                    intent.putExtra(FavoritePhotoViewActivity.CALLER_ID, FAVORITE_PHOTO_ID);
+                    if(mBackgroundFetchr.getStatus() == AsyncTask.Status.RUNNING) {
+                        mBackgroundFetchr.cancel(true);
+                        mBackgroundFetchr = new BackgroundFetchr();
+                    }
+                    Intent intent = new Intent(getActivity(), PhotoViewPagerActivity.class);
+                    intent.putExtra(PhotoViewPagerActivity.GALLERY_ITEM_POS, pos);
+                    intent.putExtra(PhotoViewPagerActivity.CALLER_ID, FAVORITE_PHOTO_ID);
                     startActivity(intent);
                 }
             }
@@ -178,15 +186,23 @@ public class FavoriteFragment extends Fragment {
         protected void onPostExecute(ArrayList<GalleryItem> galleryItems) {
 
             if(galleryItems != null && !galleryItems.isEmpty()) {
-                if(mItems == null) {
-                    mItems = galleryItems;
-                }else {
-                    mItems.addAll(galleryItems);
+               FavoriteGalleryItemLab.get(getActivity()).addFavoriteGalleryItems(galleryItems);
+               updateAdapter();
+               shouldKeepFetching = true;
+            } else if(galleryItems == null || galleryItems.isEmpty()) {
+                if(mItems.isEmpty()) {
+                    Toast.makeText(getActivity(), "This blog contains no photos", Toast.LENGTH_SHORT).show();
+                    shouldKeepFetching = false;
+                    updateAdapter();
                 }
-                updateAdapter();
+            } else if (galleryItems.size() < 10) {
+                mGallery.setVisibility(View.VISIBLE);
+                mLoadingTexView.setVisibility(View.INVISIBLE);
                 mProgressBar.setVisibility(View.GONE);
-            }else  {
-                Toast.makeText(getActivity(), "This blog contains no photos", Toast.LENGTH_SHORT).show();
+                mBackgroundFetchr = new BackgroundFetchr();
+                mOffset += 20;
+                mBackgroundFetchr.execute(mBlogUrl, mOffset + "");
+                updateAdapter();
             }
             mGallery.setVisibility(View.VISIBLE);
             mLoadingTexView.setVisibility(View.INVISIBLE);
@@ -198,8 +214,8 @@ public class FavoriteFragment extends Fragment {
     private void updateAdapter() {
         if (getActivity() == null || mGridView == null) return;
 
-        if (mItems != null) {
-            if(mAdapter == null) {
+        if (!mItems.isEmpty()) {
+            if(mAdapter == null ) {
                 mAdapter = new GridViewAdapter(mItems, getActivity());
                 mGridView.setAdapter(mAdapter);
             }else {
@@ -230,8 +246,14 @@ public class FavoriteFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        mFavoriteAdapter.notifyDataSetChanged();
+        updateAdapter();
         Log.i(TAG, "onResume() called");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        FavoriteGalleryItemLab.get(getActivity()).clearFavoriteGalleryItems();
     }
 
     @Override
@@ -263,5 +285,6 @@ public class FavoriteFragment extends Fragment {
         }
         return super.onContextItemSelected(item);
     }
+
 
 }

@@ -63,6 +63,7 @@ public class PhotoViewFragment extends Fragment {
                 intent.putExtra(PhotoPageActivity.EXTRA_BLOG_NAME, blogName);
                 intent.setData(uri);
                 startActivity(intent);
+                getActivity().finish();
             }
         });
 

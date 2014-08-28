@@ -65,7 +65,9 @@ public class FavoriteFragment extends Fragment {
     public View onCreateView(final LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.favorite_fragment, container, false);
 
-        mBackgroundFetchr.execute(mBlogUrl, mOffset + "");
+        if(isNetworkAvailable()) {
+            mBackgroundFetchr.execute(mBlogUrl, mOffset + "");
+        }
 
         mGallery = (Gallery) v.findViewById(R.id.favorite_gallery);
         registerForContextMenu(mGallery);

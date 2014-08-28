@@ -129,12 +129,20 @@ public class TumblrFetchr {
                     for(int k = 0; k < alt_sizes.length(); k++) {
                         JSONObject url = alt_sizes.getJSONObject(k);
                         String urlString = url.getString("url");
-
-                        if(k == 0) {
-                            item.setLargeUrl(urlString);
-                        } else if(k == 4) {
-                            item.setSmallUrl(urlString);
+                        if(urlString.substring(urlString.length()-3).equals("gif")) {
+                            if(k == 2) {
+                                item.setLargeUrl(urlString);
+                            } else if(k == 4) {
+                                item.setSmallUrl(urlString);
+                            }
+                        } else {
+                            if(k == 0) {
+                                item.setLargeUrl(urlString);
+                            } else if(k == 4) {
+                                item.setSmallUrl(urlString);
+                            }
                         }
+
                     }
                     if(item.getSmallUrl() != null && item.getLargeUrl() != null) {
                         items.add(item);

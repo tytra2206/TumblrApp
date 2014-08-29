@@ -45,6 +45,7 @@ public class PhotoViewPagerActivity extends FragmentActivity {
         }
 
         mAdapter = new FragmentStatePagerAdapter(getSupportFragmentManager()) {
+
             @Override
             public Fragment getItem(int pos) {
                 return PhotoViewFragment.newInstance(pos, callerId);
@@ -59,7 +60,7 @@ public class PhotoViewPagerActivity extends FragmentActivity {
         mViewPager = (ViewPager) findViewById(R.id.favorite_pager);
         mViewPager.setAdapter(mAdapter);
         mViewPager.setCurrentItem(pos);
-        mViewPager.setPageTransformer(true, new ZoomOutPageTransformer());
+        mViewPager.setPageTransformer(true, new DepthPageTransformer());
         mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int i, float v, int i2) {

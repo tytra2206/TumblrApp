@@ -33,6 +33,7 @@ public class PhotoViewFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRetainInstance(true);
         mPosition = getArguments().getInt(GALLERY_ITEM);
         mCallerId = getArguments().getInt(CALLER_ID);
 

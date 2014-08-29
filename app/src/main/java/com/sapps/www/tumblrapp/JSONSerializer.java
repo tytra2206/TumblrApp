@@ -1,7 +1,6 @@
 package com.sapps.www.tumblrapp;
 
 import android.content.Context;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,8 +34,6 @@ public class JSONSerializer {
         for(FavoriteItem item : items) {
             array.put(item.toJSON());
         }
-
-        Log.i(TAG, "JSON Array: " + array);
 
         Writer writer = null;
         try {

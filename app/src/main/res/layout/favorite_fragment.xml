@@ -56,12 +56,4 @@
 
     </FrameLayout>
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/zoom_photo_imageview"
-        android:visibility="invisible"
-        android:scaleType="centerInside"
-        android:layout_gravity="center"/>
-
 </LinearLayout>

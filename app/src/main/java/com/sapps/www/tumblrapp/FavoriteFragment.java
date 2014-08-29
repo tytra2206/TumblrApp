@@ -241,7 +241,7 @@ public class FavoriteFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        FavoriteItemLab.get(getActivity()).saveFavoriteItems();
+        //FavoriteItemLab.get(getActivity()).saveFavoriteItems();
         Log.i(TAG, "onPause() called");
     }
 
